@@ -9,7 +9,7 @@ function is_touching(h, t) {
     return xs.includes(t[0]) && ys.includes(t[1]);
 }
 
-function compute_dt(h, t) {
+function compute_offset(h, t) {
 
     if( is_touching(h, t) ) {
         return [0, 0];
@@ -47,11 +47,11 @@ function compute_dt(h, t) {
         return [-1, -1];
     }
 
-    // sanity
+    // assert logic
     throw new Error(`don't know how to move the tail ${t} towards head ${h}`);
 }
 
-async function solver(filename) {
+async function solver(filename, knots) {
     const input = await fs.readFile(filename, { encoding: 'utf8' })
 
     const moves = {
@@ -70,38 +70,44 @@ async function solver(filename) {
         .flat()
         ;
 
-    let h = [0, 0];
-    let t = [0, 0];
+    let k = Array(knots).fill([0, 0]);
 
     let pt = [];
 
     for(const c of commands) {
-        h = [h[0] + c[0], h[1] + c[1]];
+        k[0] = [k[0][0] + c[0], k[0][1] + c[1]];
 
-        const o = compute_dt(h, t);
-
-        t = [t[0] + o[0], t[1] + o[1]];
-
-        pt.push(t);
+        for(let i=1; i<knots; ++i) {
+            const o = compute_offset(k[i-1], k[i]);
+            k[i] = [k[i][0] + o[0], k[i][1] + o[1]];
+        }
+    
+        pt.push(k[knots-1]);
     }
 
-    dp = [...new Set(
+    const distinct_points = [...new Set(
         pt.map(p => `${p[0]},${p[1]}`)
     )]
 
-    return dp.length;
+    return distinct_points.length;
 }
 
 async function main() {
     try {
-        test = await solver('input-test.txt');
+        test = await solver('input-test.txt', 2);
 
         if( test !== 13 ) {
             throw new Error(`test failed ${test}`);
         }
 
         console.log(
-            await solver('input.txt')
+            'a',
+            await solver('input.txt', 2)
+        );
+
+        console.log(
+            'b',
+            await solver('input.txt', 10)
         );
     } catch (err) {
         console.log(err);

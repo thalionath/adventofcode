@@ -122,7 +122,7 @@ async function solver(filename) {
     const rx = /Blueprint (\d+): Each ore robot costs (\d+) ore. Each clay robot costs (\d+) ore. Each obsidian robot costs (\d+) ore and (\d+) clay. Each geode robot costs (\d+) ore and (\d+) obsidian./
 
     const s = {
-        left: 32,
+        left: 24,
         robots: {
             ore: 1,
             clay: 0,
@@ -135,11 +135,10 @@ async function solver(filename) {
             obsidian: 0,
             geode: 0,
         }
-    }
+    };
 
     const blueprints = input
         .split(/\r?\n/)
-        .slice(0, 3)
         .map(line => line.match(rx).slice(1).map(s => parseInt(s)))
         .map(args => new Blueprint(args))
         .map(b => dfs(s, b).max_geodes )
@@ -147,21 +146,19 @@ async function solver(filename) {
 
     console.log(blueprints);
 
-    return blueprints;
+    return blueprints.map((m, i) => m*(i+1)).reduce((a, s) => a + s);
 }
 
 async function main() {
     try {
         test = await solver('input-test.txt');
 
-        if( test[0] !== 56 || test[1] !== 62 ) {
+        if( test !== 33 ) {
             throw new Error(`test failed ${test}`);
         }
 
-        const geodes = await solver('input.txt');
-
         console.log(
-            geodes, geodes.reduce((a, s) => a * s)
+            await solver('input.txt')
         );
     } catch (err) {
         console.log(err);
